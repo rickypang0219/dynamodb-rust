@@ -5,6 +5,7 @@ use std::sync::Arc;
 use tokio::time;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
+use tracing::info;
 
 use crate::bookticker_stream::db::put_ticker_to_db;
 
@@ -59,7 +60,8 @@ impl BookTickerStream {
         ddb_client: &aws_sdk_dynamodb::Client,
     ) -> Result<(), Box<dyn std::error::Error + Send>> {
         loop {
-            let url: String = "wss://fstream.binance.com/ws/!bookTicker".to_string();
+            let url: String = "wss://fstream.binance.com/ws/btcusdt@bookTicker".to_string();
+            // let url: String = "wss://fstream.binance.com/ws/!bookTicker".to_string();
             let (ws_stream, _) = match connect_async(&url).await {
                 Ok(stream) => stream,
                 Err(e) => {
@@ -87,7 +89,7 @@ impl BookTickerStream {
                         book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
 
                         if ticker.symbol == "BTCUSDT" {
-                            println!("received BTC updates {:?}", ticker);
+                            info!("received BTC updates {:?}", ticker);
                             if let Err(e) = put_ticker_to_db(ddb_client, ticker).await {
                                 eprintln!("Failed to put ticker to DynamoDB: {}", e);
                             }

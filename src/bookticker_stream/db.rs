@@ -1,5 +1,6 @@
 use crate::bookticker_stream::bookticker::BookTicker;
 use aws_sdk_dynamodb::types::AttributeValue;
+use tracing::info;
 
 pub async fn put_ticker_to_db(
     client: &aws_sdk_dynamodb::Client,
@@ -24,9 +25,8 @@ pub async fn put_ticker_to_db(
         .item("best_ask", best_ask)
         .item("ask_qty", ask_qty);
 
-    println!("Executing request to DynamoDB");
+    info!("Executing request to DynamoDB");
     request.send().await?;
-    println!("Successfully uploaded BookTicker to TickerTable",);
-
+    info!("Successfully uploaded BookTicker to TickerTable",);
     Ok(())
 }
