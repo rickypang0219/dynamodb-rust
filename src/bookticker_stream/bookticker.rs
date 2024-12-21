@@ -7,8 +7,6 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::info;
 
-use crate::bookticker_stream::db::put_ticker_to_db;
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct BestPrices {
     pub bid: f64,
@@ -55,15 +53,15 @@ impl BookTickerStream {
         }
     }
 
-    pub async fn listen_coins_book_prices(
-        &self,
-        ddb_client: &aws_sdk_dynamodb::Client,
-    ) -> Result<(), Box<dyn std::error::Error + Send>> {
+    pub async fn listen_coins_book_prices(&self) -> Result<(), Box<dyn std::error::Error + Send>> {
         loop {
-            let url: String = "wss://fstream.binance.com/ws/btcusdt@bookTicker".to_string();
-            // let url: String = "wss://fstream.binance.com/ws/!bookTicker".to_string();
+            // let url: String = "wss://fstream.binance.com/ws/btcusdt@bookTicker".to_string();
+            let url: String = "wss://fstream.binance.com/ws/!bookTicker".to_string();
             let (ws_stream, _) = match connect_async(&url).await {
-                Ok(stream) => stream,
+                Ok(stream) => {
+                    info!("Listen to Book Ticker Stream");
+                    stream
+                }
                 Err(e) => {
                     eprintln!("Failed to connect: {}, retrying...", e);
                     continue; // Retry immediately without delay
@@ -88,28 +86,26 @@ impl BookTickerStream {
                         let mut book_ticker = self.book_ticker.lock().await;
                         book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
 
-                        if ticker.symbol == "BTCUSDT" {
-                            info!("received BTC updates {:?}", ticker);
-                            if let Err(e) = put_ticker_to_db(ddb_client, ticker).await {
-                                eprintln!("Failed to put ticker to DynamoDB: {}", e);
-                            }
-                        }
+                        // if ticker.symbol == "BTCUSDT" {
+                        //     info!("received BTC updates {:?}", ticker);
+                        // }
                     }
                     Ok(Message::Ping(payload)) => {
                         if let Err(e) = write.send(Message::Pong(payload)).await {
-                            eprintln!("Failed to send Pong response: {}", e);
+                            info!("Failed to send Pong response: {}", e);
                         }
                     }
                     Ok(non_text_message) => {
-                        println!("Received Non Text Messages {:?}", non_text_message)
+                        info!("Received Non Text Messages {:?}", non_text_message)
                     }
                     Err(e) => {
-                        eprintln!("Error Message {}", e);
+                        info!("Error Message {}", e);
                         break;
                     }
                 }
             }
-            eprintln!("Connection lost, retrying immediately...");
+            info!("Book Ticker Connection lost, retrying immediately...");
+            continue;
         }
     }
 
@@ -117,9 +113,9 @@ impl BookTickerStream {
         loop {
             time::sleep(time::Duration::new(1800, 0)).await;
             let book_ticker = self.book_ticker.lock().await;
-            println!("Current Book Ticker:");
+            info!("Current Book Ticker:");
             for (symbol, prices) in book_ticker.iter() {
-                println!("{}: Bid: {}, Ask: {}", symbol, prices.bid, prices.ask);
+                info!("{}: Bid: {}, Ask: {}", symbol, prices.bid, prices.ask);
             }
         }
     }

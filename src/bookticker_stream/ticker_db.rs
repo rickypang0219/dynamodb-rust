@@ -16,7 +16,7 @@ pub async fn put_ticker_to_db(
 
     let request = client
         .put_item()
-        .table_name("TickerTable")
+        .table_name("TestTickerTable")
         .item("PK", event)
         .item("SK", event_time)
         .item("symbol", symbol)

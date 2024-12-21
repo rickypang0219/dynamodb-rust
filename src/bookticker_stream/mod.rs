@@ -1,2 +1,2 @@
 pub mod bookticker;
-pub mod db;
+pub mod ticker_db;
