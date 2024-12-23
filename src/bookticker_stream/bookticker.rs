@@ -24,7 +24,7 @@ pub struct BookTicker {
     #[serde(rename = "b")]
     pub best_bid: String,
     #[serde(rename = "B")]
-    pub bbid_qty: String,
+    pub bid_qty: String,
     #[serde(rename = "a")]
     pub best_ask: String,
     #[serde(rename = "A")]
@@ -86,9 +86,9 @@ impl BookTickerStream {
                         let mut book_ticker = self.book_ticker.lock().await;
                         book_ticker.insert(ticker.symbol.clone(), BestPrices { bid, ask });
 
-                        // if ticker.symbol == "BTCUSDT" {
-                        //     info!("received BTC updates {:?}", ticker);
-                        // }
+                        if ticker.symbol == "BTCUSDT" {
+                            info!("received BTC updates {:?}", ticker);
+                        }
                     }
                     Ok(Message::Ping(payload)) => {
                         if let Err(e) = write.send(Message::Pong(payload)).await {
@@ -111,7 +111,7 @@ impl BookTickerStream {
 
     pub async fn show_bookticker(&self) {
         loop {
-            time::sleep(time::Duration::new(1800, 0)).await;
+            time::sleep(time::Duration::new(60, 0)).await;
             let book_ticker = self.book_ticker.lock().await;
             info!("Current Book Ticker:");
             for (symbol, prices) in book_ticker.iter() {

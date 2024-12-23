@@ -27,11 +27,9 @@ impl UserDataStream {
             while let Some(message) = read.next().await {
                 match message {
                     Ok(Message::Text(text)) => {
-                        info!("Received message: {}", &text);
                         self.handle_user_data_update(&text).await;
                     }
                     Ok(Message::Ping(payload)) => {
-                        info!("UserDataStream Ping {:?}", &payload);
                         if let Err(e) = write.send(Message::Pong(payload)).await {
                             info!("Failed to send Pong response: {}", e);
                         }
@@ -58,7 +56,7 @@ impl UserDataStream {
                 self.process_update(update).await;
             }
             Err(e) => {
-                info!("Failed to deserialize message: {}, text: {}", e, text);
+                info!("Failed to deserialize message: {}\n, text: {}\n", e, text);
             }
         }
     }
@@ -68,8 +66,18 @@ impl UserDataStream {
             UserDataUpdate::OrderTradeUpdate(order_update) => {
                 info!("Received OrderTradeUpdate: {:?}", order_update);
             }
+            UserDataUpdate::ListenKeyExpired(key_expired) => {
+                info!("Listen Key is expired. Resend a key {:?}", key_expired);
+                // TODO: Add &binance_client to
+            }
+            UserDataUpdate::AccountConfigUpdate(acc_update) => {
+                info!("Received Account Update {:?}", acc_update);
+            }
+            UserDataUpdate::TradeLite(trade_lite) => {
+                info!("Received Trade Lite report {:?}", trade_lite);
+            }
             _ => {
-                info!("Received update: {:?}", update);
+                // info!("Received update: {:?}", update);
             }
         }
     }

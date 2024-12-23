@@ -26,9 +26,10 @@ pub async fn get_param_value(
     ssm_client: &aws_sdk_ssm::Client,
     param_name: String,
 ) -> Result<Option<String>, SdkError<GetParameterError, HttpResponse>> {
-    let param_info = request_param(ssm_client, param_name).await?;
+    let param_info = request_param(ssm_client, param_name.clone()).await?;
     if let Some(parameter) = param_info.parameter() {
         if let Some(value) = parameter.value() {
+            info!("Succeed in getting {:?}", &param_name);
             return Ok(Some(value.to_string()));
         }
     }

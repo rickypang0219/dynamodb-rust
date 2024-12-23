@@ -9,7 +9,7 @@ pub async fn put_ticker_to_db(
     let event = AttributeValue::S(format!("{}#{}", item.symbol, item.event));
     let symbol = AttributeValue::S(item.symbol);
     let best_bid = AttributeValue::N(item.best_bid);
-    let bid_qty = AttributeValue::N(item.bbid_qty);
+    let bid_qty = AttributeValue::N(item.bid_qty);
     let best_ask = AttributeValue::N(item.best_ask);
     let ask_qty = AttributeValue::N(item.ask_qty);
     let event_time = AttributeValue::S(item.event_time.to_string());

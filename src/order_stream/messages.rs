@@ -1,60 +1,54 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(untagged)]
+#[serde(tag = "e", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum UserDataUpdate {
-    ListenKeyExpired(ListenKeyExpired),
-    BalancePositionUpdate(BalancePositionUpdate),
-    MarginCallUpdate(MarginCallUpdate),
-    OrderTradeUpdate(OrderTradeUpdate),
-    TradeLiteUpdate(TradeLiteUpdate),
-    AccountConfigUpdate(AccountConfigUpdate),
-    StrategyUpdate(StrategyUpdate),
-    GridUpdate(GridUpdate),
-    ConditionalOrderTriggerReject(ConditionalOrderTriggerReject),
+    ListenKeyExpired(ListenKeyExpiredEvent),
+    AccountUpdate(BalancePositionUpdateEvent),
+    MarginCallUpdate(MarginCallUpdateEvent),
+    OrderTradeUpdate(OrderTradeUpdateEvent),
+    TradeLite(TradeLiteUpdateEvent),
+    AccountConfigUpdate(AccountConfigUpdateEvent),
+    StrategyUpdate(StrategyUpdateEvent),
+    GridUpdate(GridUpdateEvent),
+    ConditionalOrderTriggerReject(ConditionalOrderTriggerRejectEvent),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ListenKeyExpired {
-    #[serde(rename = "e")]
-    pub e: String,
-    #[serde(rename = "E")]
-    pub event_time: u64,
+pub struct ListenKeyExpiredEvent {
+    #[allow(non_snake_case)]
+    pub E: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct BalancePositionUpdate {
-    #[serde(rename = "e")]
-    pub event_type: String,
-    #[serde(rename = "E")]
-    pub event_time: u64,
-    pub m: BalancePositionData,
+pub struct BalancePositionUpdateEvent {
+    #[allow(non_snake_case)]
+    pub E: u64,
+    #[allow(non_snake_case)]
+    pub T: u64,
+    pub a: BalancePositionData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct MarginCallUpdate {
-    #[serde(rename = "e")]
-    pub event_type: String,
-    #[serde(rename = "E")]
-    pub event_time: u64,
+pub struct MarginCallUpdateEvent {
+    #[allow(non_snake_case)]
+    pub E: u64,
     pub cw: String,
     pub p: MarginPositionData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct OrderTradeUpdate {
-    pub e: String,
+pub struct OrderTradeUpdateEvent {
     #[allow(non_snake_case)]
     pub E: u64,
+    #[allow(non_snake_case)]
+    pub T: u64,
     pub o: OrderUpdateData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TradeLiteUpdate {
-    #[serde(rename = "e")]
-    pub event_type: String,
-    #[serde(rename = "E")]
-    pub event_time: u64,
+pub struct TradeLiteUpdateEvent {
+    pub E: u64,
     #[allow(non_snake_case)]
     pub T: u64,
     pub s: String, // Symbol
@@ -72,8 +66,7 @@ pub struct TradeLiteUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AccountConfigUpdate {
-    pub e: String, // Event Type
+pub struct AccountConfigUpdateEvent {
     #[allow(non_snake_case)]
     pub E: u64, // Event Time
     #[allow(non_snake_case)]
@@ -83,8 +76,7 @@ pub struct AccountConfigUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct StrategyUpdate {
-    pub e: String, // Event Type
+pub struct StrategyUpdateEvent {
     #[allow(non_snake_case)]
     pub T: u64, // Transaction Time
     #[allow(non_snake_case)]
@@ -93,8 +85,7 @@ pub struct StrategyUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct GridUpdate {
-    pub e: String, // Event Type
+pub struct GridUpdateEvent {
     #[allow(non_snake_case)]
     pub T: u64, // Transaction Time
     #[allow(non_snake_case)]
@@ -103,8 +94,7 @@ pub struct GridUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ConditionalOrderTriggerReject {
-    pub e: String, // Event Type
+pub struct ConditionalOrderTriggerRejectEvent {
     #[allow(non_snake_case)]
     pub E: u64, // Event Time
     #[allow(non_snake_case)]
@@ -195,17 +185,17 @@ pub struct OrderUpdateData {
     pub ps: String, // Position Side
     pub cp: bool,  // If Close-All
     #[allow(non_snake_case)]
-    pub AP: String, // Activation Price
-    pub cr: String, // Callback Rate
+    pub AP: Option<String>, // Activation Price
+    pub cr: Option<String>, // Callback Rate
     #[allow(non_snake_case)]
     pub pP: bool, // If price protection is turned on
-    pub si: i32,   // ignore
-    pub ss: i32,   // ignore
+    pub si: u64,   // ignore
+    pub ss: u64,   // ignore
     pub rp: String, // Realized Profit of the trade
     #[allow(non_snake_case)]
     pub V: String, // STP mode
     pub pm: String, // Price match mode
-    pub gtd: i32,  // TIF GTD order auto cancel time
+    pub gtd: u64,  // TIF GTD order auto cancel time
 }
 
 // Account Config Update

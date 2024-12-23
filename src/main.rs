@@ -16,7 +16,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ssm_client = get_ssm_client().await?;
     let binance_api_key = get_param_value(&ssm_client, "binance-api-key".to_string()).await?;
     let binance_secret_key = get_param_value(&ssm_client, "binance-secret-key".to_string()).await?;
-    println!("{:?} {:?}", &binance_api_key, &binance_secret_key);
 
     let binance_future_client = AsyncBinanceClient::new(
         binance_api_key,
@@ -25,7 +24,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(30),
     );
     let listen_key: String = binance_future_client.get_listen_key().await?;
-    println!("{:?}", &listen_key);
 
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
     let bookticker_stream = BookTickerStream::new();
@@ -75,6 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 info!("Error in keeping ListenKey alive {:?}", e);
                 continue;
             }
+            info!("Send Keep Alive message every 1800 seconds");
             tokio::time::sleep(interval).await;
         }
     });
