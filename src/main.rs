@@ -11,14 +11,13 @@ use aws_resources::clients::get_ssm_client;
 use aws_resources::ssm_params::get_param_value;
 use order_stream::order_update::UserDataStream;
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
-
+    let bookticker_partition: usize = 4;
     let ssm_client = get_ssm_client().await?;
     let binance_api_key = get_param_value(&ssm_client, "binance-api-key".to_string()).await?;
     let binance_secret_key = get_param_value(&ssm_client, "binance-secret-key".to_string()).await?;
-
     let binance_future_client = AsyncBinanceClient::new(
         binance_api_key,
         binance_secret_key,
@@ -38,7 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let bookticker_stream_clone = bookticker_stream.clone();
         tokio::spawn(async move {
             if let Err(e) = bookticker_stream_clone
-                .listen_all_coins_bookticker(coins_name, 6)
+                .listen_all_coins_bookticker(coins_name, bookticker_partition)
                 .await
             {
                 eprintln!("An error occurred: {}", e);
@@ -72,6 +71,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let keep_listen_key_alive_task = tokio::spawn(async move {
         let interval = tokio::time::Duration::from_secs(1800);
+        tokio::time::sleep(interval).await;
         loop {
             if let Err(e) = binance_future_client
                 .keep_listen_key_alive(&listen_key.clone())

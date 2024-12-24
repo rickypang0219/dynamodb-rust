@@ -64,14 +64,13 @@ impl BookTickerStream {
         url: &String,
     ) -> Result<(), Box<dyn std::error::Error + Send>> {
         loop {
-            // let url: String = "wss://fstream.binance.com/ws/!bookTicker".to_string();
             let (ws_stream, _) = match connect_async(url).await {
                 Ok(stream) => {
                     info!("Listen to Book Ticker Stream");
                     stream
                 }
                 Err(e) => {
-                    eprintln!("Failed to connect: {}, retrying...", e);
+                    info!("Failed to connect: {}, retrying...", e);
                     continue; // Retry immediately without delay
                 }
             };
