@@ -11,12 +11,13 @@ use aws_resources::clients::get_ssm_client;
 use aws_resources::ssm_params::get_param_value;
 use order_stream::order_update::UserDataStream;
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
+    let bookticker_partition: usize = 4;
     let ssm_client = get_ssm_client().await?;
     let binance_api_key = get_param_value(&ssm_client, "binance-api-key".to_string()).await?;
     let binance_secret_key = get_param_value(&ssm_client, "binance-secret-key".to_string()).await?;
-
     let binance_future_client = AsyncBinanceClient::new(
         binance_api_key,
         binance_secret_key,
@@ -24,17 +25,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(30),
     );
     let listen_key: String = binance_future_client.get_listen_key().await?;
-
-    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
+    let coins_name = binance_future_client.get_available_coins_name().await;
     let bookticker_stream = BookTickerStream::new();
-    let listener_task = {
+    // let urls: Vec<String> = vec![
+    //     "wss://fstream.binance.com/stream?streams=btcusdt@bookTicker/ethusdt@bookTicker"
+    //         .to_string(),
+    //     "wss://fstream.binance.com/stream?streams=zenusdt@bookTicker/bchusdt@bookTicker"
+    //         .to_string(),
+    // ];
+    let bookticker_task = {
         let bookticker_stream_clone = bookticker_stream.clone();
         tokio::spawn(async move {
-            loop {
-                if let Err(e) = bookticker_stream_clone.listen_coins_book_prices().await {
-                    eprintln!("Error listening to WebSocket: {:?}", e);
-                    continue;
-                }
+            if let Err(e) = bookticker_stream_clone
+                .listen_all_coins_bookticker(coins_name, bookticker_partition)
+                .await
+            {
+                eprintln!("An error occurred: {}", e);
             }
         })
     };
@@ -65,6 +71,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let keep_listen_key_alive_task = tokio::spawn(async move {
         let interval = tokio::time::Duration::from_secs(1800);
+        tokio::time::sleep(interval).await;
         loop {
             if let Err(e) = binance_future_client
                 .keep_listen_key_alive(&listen_key.clone())
@@ -79,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let _ = tokio::try_join!(
-        listener_task,
+        bookticker_task,
         printer_task,
         user_data_listener_task,
         keep_listen_key_alive_task

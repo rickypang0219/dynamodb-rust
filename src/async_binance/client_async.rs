@@ -1,5 +1,5 @@
 use crate::async_binance::errors::CustomError;
-use crate::async_binance::models::ListenKey;
+use crate::async_binance::models::{ExchangeInfo, ListenKey};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE, USER_AGENT};
 use ring::hmac;
 use std::time::Duration;
@@ -206,5 +206,24 @@ impl AsyncBinanceClient {
             Ok(_) => Ok(()),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn get_exchange_info(&self) -> Result<ExchangeInfo, CustomError> {
+        let response: Result<ExchangeInfo, CustomError> = self.get("exchangeInfo", None).await;
+        match response {
+            Ok(data) => Ok(data),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn get_available_coins_name(&self) -> Vec<String> {
+        // if no exchange info then panic
+        let exchange_info = self.get_exchange_info().await.unwrap();
+        exchange_info
+            .symbols
+            .iter()
+            .filter(|symbol| symbol.contractType == "PERPETUAL")
+            .map(|symbol| symbol.symbol.clone())
+            .collect()
     }
 }

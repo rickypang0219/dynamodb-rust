@@ -15,12 +15,13 @@ pub enum UserDataUpdate {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct ListenKeyExpiredEvent {
-    #[allow(non_snake_case)]
     pub E: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct BalancePositionUpdateEvent {
     #[allow(non_snake_case)]
     pub E: u64,
@@ -30,23 +31,23 @@ pub struct BalancePositionUpdateEvent {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct MarginCallUpdateEvent {
-    #[allow(non_snake_case)]
     pub E: u64,
     pub cw: String,
     pub p: MarginPositionData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct OrderTradeUpdateEvent {
-    #[allow(non_snake_case)]
     pub E: u64,
-    #[allow(non_snake_case)]
     pub T: u64,
     pub o: OrderUpdateData,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct TradeLiteUpdateEvent {
     pub E: u64,
     #[allow(non_snake_case)]
@@ -66,53 +67,49 @@ pub struct TradeLiteUpdateEvent {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct AccountConfigUpdateEvent {
-    #[allow(non_snake_case)]
     pub E: u64, // Event Time
-    #[allow(non_snake_case)]
     pub T: u64, // Transaction Time
     #[serde(flatten)] // Use flattening for different configurations
     pub account_config: AccountConfig, // User's Account Configuration
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct StrategyUpdateEvent {
-    #[allow(non_snake_case)]
-    pub T: u64, // Transaction Time
-    #[allow(non_snake_case)]
-    pub E: u64, // Event Time
+    pub T: u64,              // Transaction Time
+    pub E: u64,              // Event Time
     pub su: StrategyDetails, // Strategy Update Details
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct GridUpdateEvent {
-    #[allow(non_snake_case)]
-    pub T: u64, // Transaction Time
-    #[allow(non_snake_case)]
-    pub E: u64, // Event Time
+    pub T: u64,                // Transaction Time
+    pub E: u64,                // Event Time
     pub gu: GridUpdateDetails, // Grid Update Details
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct ConditionalOrderTriggerRejectEvent {
-    #[allow(non_snake_case)]
-    pub E: u64, // Event Time
-    #[allow(non_snake_case)]
-    pub T: u64, // Message Send Time
+    pub E: u64,                 // Event Time
+    pub T: u64,                 // Message Send Time
     pub or: OrderRejectDetails, // Order Details
 }
 
 // Balance Position Updates
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct BalancePositionData {
-    pub m: String, // Event reason type
-    #[allow(non_snake_case)]
-    pub B: Vec<Balance>, // Balances
-    #[allow(non_snake_case)]
+    pub m: String,        // Event reason type
+    pub B: Vec<Balance>,  // Balances
     pub P: Vec<Position>, // Positions
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct Balance {
     pub a: String,  // Asset
     pub wb: String, // Wallet Balance
@@ -149,57 +146,49 @@ pub struct MarginPositionData {
 
 // Order Status Update
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct OrderUpdateData {
-    pub s: String, // Symbol
-    pub c: String, // Client Order Id
-    #[allow(non_snake_case)]
-    pub S: String, // Side
-    pub o: String, // Order Type
-    pub f: String, // Time in Force
-    pub q: String, // Original Quantity
-    pub p: String, // Original Price
-    pub ap: String, // Average Price
-    pub sp: String, // Stop Price
-    pub x: String, // Execution Type
-    #[allow(non_snake_case)]
-    pub X: String, // Order Status
-    pub i: u64,    // Order Id
-    pub l: String, // Order Last Filled Quantity
-    pub z: String, // Order Filled Accumulated Quantity
-    #[allow(non_snake_case)]
-    pub L: String, // Last Filled Price
-    #[allow(non_snake_case)]
-    pub N: String, // Commission Asset
-    pub n: String, // Commission
-    #[allow(non_snake_case)]
-    pub T: u64, // Order Trade Time
-    #[allow(non_snake_case)]
-    pub t: u64, // Trade Id
-    pub b: String, // Bids Notional
-    pub a: String, // Ask Notional
-    pub m: bool,   // Is this trade the maker side?
-    #[allow(non_snake_case)]
-    pub R: bool, // Is this reduce only
-    pub wt: String, // Stop Price Working Type
-    pub ot: String, // Original Order Type
-    pub ps: String, // Position Side
-    pub cp: bool,  // If Close-All
-    #[allow(non_snake_case)]
+    pub s: String,          // Symbol
+    pub c: String,          // Client Order Id
+    pub S: String,          // Side
+    pub o: String,          // Order Type
+    pub f: String,          // Time in Force
+    pub q: String,          // Original Quantity
+    pub p: String,          // Original Price
+    pub ap: String,         // Average Price
+    pub sp: String,         // Stop Price
+    pub x: String,          // Execution Type
+    pub X: String,          // Order Status
+    pub i: u64,             // Order Id
+    pub l: String,          // Order Last Filled Quantity
+    pub z: String,          // Order Filled Accumulated Quantity
+    pub L: String,          // Last Filled Price
+    pub N: String,          // Commission Asset
+    pub n: String,          // Commission
+    pub T: u64,             // Order Trade Time
+    pub t: u64,             // Trade Id
+    pub b: String,          // Bids Notional
+    pub a: String,          // Ask Notional
+    pub m: bool,            // Is this trade the maker side?
+    pub R: bool,            // Is this reduce only
+    pub wt: String,         // Stop Price Working Type
+    pub ot: String,         // Original Order Type
+    pub ps: String,         // Position Side
+    pub cp: bool,           // If Close-All
     pub AP: Option<String>, // Activation Price
     pub cr: Option<String>, // Callback Rate
-    #[allow(non_snake_case)]
-    pub pP: bool, // If price protection is turned on
-    pub si: u64,   // ignore
-    pub ss: u64,   // ignore
-    pub rp: String, // Realized Profit of the trade
-    #[allow(non_snake_case)]
-    pub V: String, // STP mode
-    pub pm: String, // Price match mode
-    pub gtd: u64,  // TIF GTD order auto cancel time
+    pub pP: bool,           // If price protection is turned on
+    pub si: u64,            // ignore
+    pub ss: u64,            // ignore
+    pub rp: String,         // Realized Profit of the trade
+    pub V: String,          // STP mode
+    pub pm: String,         // Price match mode
+    pub gtd: u64,           // TIF GTD order auto cancel time
 }
 
 // Account Config Update
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 #[serde(untagged)] // Allows for multiple formats in the same struct
 pub enum AccountConfig {
     LeverageConfig(AccountLeverage),       // For leverage configuration
