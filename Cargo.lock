@@ -670,9 +670,11 @@ dependencies = [
  "aws-sdk-dynamodb",
  "aws-sdk-ssm",
  "aws-types 0.12.0",
+ "bytes",
  "futures",
  "hex",
  "hmac",
+ "log",
  "rayon",
  "reqwest",
  "ring",
@@ -684,6 +686,7 @@ dependencies = [
  "tokio-tungstenite",
  "tracing",
  "tracing-subscriber",
+ "tungstenite 0.26.1",
 ]
 
 [[package]]
@@ -2253,7 +2256,7 @@ dependencies = [
  "native-tls",
  "tokio",
  "tokio-native-tls",
- "tungstenite",
+ "tungstenite 0.21.0",
 ]
 
 [[package]]
@@ -2378,6 +2381,24 @@ dependencies = [
  "sha1",
  "thiserror 1.0.69",
  "url",
+ "utf-8",
+]
+
+[[package]]
+name = "tungstenite"
+version = "0.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413083a99c579593656008130e29255e54dcaae495be556cc26888f211648c24"
+dependencies = [
+ "byteorder",
+ "bytes",
+ "data-encoding",
+ "http 1.2.0",
+ "httparse",
+ "log",
+ "rand",
+ "sha1",
+ "thiserror 2.0.8",
  "utf-8",
 ]
 

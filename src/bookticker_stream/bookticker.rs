@@ -1,11 +1,12 @@
+use bytes::Bytes;
 use futures::{SinkExt, StreamExt};
+use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::time;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
-use tracing::info;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct BestPrices {
@@ -43,9 +44,10 @@ pub struct BookTicker {
 
 #[derive(Debug, Clone)]
 pub struct BookTickerStream {
-    pub book_ticker: Arc<tokio::sync::Mutex<HashMap<String, BestPrices>>>,
+    pub book_ticker: Arc<std::sync::Mutex<HashMap<String, BestPrices>>>,
 }
 
+// Default trait
 impl Default for BookTickerStream {
     fn default() -> Self {
         Self::new()
@@ -55,7 +57,7 @@ impl Default for BookTickerStream {
 impl BookTickerStream {
     pub fn new() -> Self {
         BookTickerStream {
-            book_ticker: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            book_ticker: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
@@ -66,11 +68,11 @@ impl BookTickerStream {
         loop {
             let (ws_stream, _) = match connect_async(url).await {
                 Ok(stream) => {
-                    info!("Listen to Book Ticker Stream");
+                    log::info!("Listen to Book Ticker Stream");
                     stream
                 }
                 Err(e) => {
-                    info!("Failed to connect: {}, retrying...", e);
+                    log::info!("Failed to connect: {}, retrying...", e);
                     continue; // Retry immediately without delay
                 }
             };
@@ -78,38 +80,49 @@ impl BookTickerStream {
             while let Some(message) = read.next().await {
                 match message {
                     Ok(Message::Text(text)) => {
-                        let ticker: StreamBookTicker =
-                            serde_json::from_str(&text).expect("JSON was not well format!");
+                        let bytes = Bytes::from(text.clone());
+                        let _ticker: StreamBookTicker =
+                            serde_json::from_slice(&bytes).expect("JSON was not well format!");
 
-                        let bid: f64 = ticker
-                            .data
-                            .best_bid
-                            .parse::<f64>()
-                            .expect("Failed to parse as f64");
-                        let ask: f64 = ticker
-                            .data
-                            .best_ask
-                            .parse::<f64>()
-                            .expect("Failed to parse as f64");
-
-                        let mut book_ticker = self.book_ticker.lock().await;
-                        book_ticker.insert(ticker.data.symbol.clone(), BestPrices { bid, ask });
+                        // let bid: f64 = ticker
+                        //     .data
+                        //     .best_bid
+                        //     .parse::<f64>()
+                        //     .expect("Failed to parse as f64");
+                        // let ask: f64 = ticker
+                        //     .data
+                        //     .best_ask
+                        //     .parse::<f64>()
+                        //     .expect("Failed to parse as f64");
+                        //
+                        // let mut book_ticker = self.book_ticker.lock().await;
+                        // book_ticker.insert(ticker.data.symbol.clone(), BestPrices { bid, ask });
                     }
                     Ok(Message::Ping(payload)) => {
                         if let Err(e) = write.send(Message::Pong(payload)).await {
-                            info!("Failed to send Pong response: {}", e);
+                            log::info!("Failed to send Pong response: {}", e);
                         }
                     }
+                    Ok(Message::Binary(binary)) => {
+                        let ticker: StreamBookTicker =
+                            serde_json::from_slice(binary.to_vec().as_slice())
+                                .expect("Failed to deserialize from binary");
+                        println!("{:?}", ticker);
+                    }
+                    Ok(Message::Close(close)) => {
+                        println!("Close Message Received {:?}, retry connection", close);
+                        break;
+                    }
                     Ok(non_text_message) => {
-                        info!("Received Non Text Messages {:?}", non_text_message)
+                        log::info!("Received Non Text Messages {:?}", non_text_message)
                     }
                     Err(e) => {
-                        info!("Error Message {}", e);
+                        log::info!("Error Message {}", e);
                         break;
                     }
                 }
             }
-            info!("Book Ticker Connection lost, retrying immediately...");
+            log::info!("Book Ticker Connection lost, retrying immediately...");
             continue;
         }
     }
@@ -126,15 +139,16 @@ impl BookTickerStream {
             // let book_ticker_clone = Arc::clone(&self.book_ticker);
             tasks.push(tokio::spawn(async move {
                 if let Err(e) = self_clone.listen_one_coin_bookticker(&url).await {
-                    info!(
+                    log::info!(
                         "Unable to connect the websockets stream URL {:?} {:?}",
-                        &url, e
+                        &url,
+                        e
                     );
                 };
             }))
         }
         for task in tasks {
-            let _ = task.await;
+            task.await.unwrap();
         }
         Ok(())
     }
@@ -142,10 +156,10 @@ impl BookTickerStream {
     pub async fn show_bookticker(&self) {
         loop {
             time::sleep(time::Duration::new(1800, 0)).await;
-            let book_ticker = self.book_ticker.lock().await;
-            info!("Current Book Ticker:");
+            let book_ticker = self.book_ticker.lock().unwrap();
+            log::info!("Current Book Ticker:");
             for (symbol, prices) in book_ticker.iter() {
-                info!("{}: Bid: {}, Ask: {}", symbol, prices.bid, prices.ask);
+                log::info!("{}: Bid: {}, Ask: {}", symbol, prices.bid, prices.ask);
             }
         }
     }
