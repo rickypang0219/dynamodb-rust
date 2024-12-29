@@ -1,7 +1,6 @@
 use aws_sdk_ssm::config::http::HttpResponse;
 use aws_sdk_ssm::error::SdkError;
 use aws_sdk_ssm::operation::get_parameter::{GetParameterError, GetParameterOutput};
-use tracing::info;
 
 async fn request_param(
     ssm_client: &aws_sdk_ssm::Client,
@@ -16,7 +15,7 @@ async fn request_param(
     match param {
         Ok(data) => Ok(data),
         Err(e) => {
-            info!("Unable to get parameter!");
+            log::info!("Unable to get parameter!");
             Err(e)
         }
     }
@@ -29,7 +28,7 @@ pub async fn get_param_value(
     let param_info = request_param(ssm_client, param_name.clone()).await?;
     if let Some(parameter) = param_info.parameter() {
         if let Some(value) = parameter.value() {
-            info!("Succeed in getting {:?}", &param_name);
+            log::info!("Succeed in getting {:?}", &param_name);
             return Ok(Some(value.to_string()));
         }
     }

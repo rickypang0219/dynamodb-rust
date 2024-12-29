@@ -25,7 +25,4 @@ rayon = "1.10.0"
 tungstenite = "0.26.1"
 bytes = "1.9.0"
 log = "0.4.22"
-
-
-[profile.release]
-panic = 'abort'
+env_logger = "0.11.6"
