@@ -1,7 +1,5 @@
 pub mod bookticker_stream;
 use bookticker_stream::bookticker::BookTickerStream;
-use tracing::{info, Level};
-use tracing_subscriber;
 
 pub mod async_binance;
 pub mod aws_resources;
@@ -11,10 +9,13 @@ use aws_resources::clients::get_ssm_client;
 use aws_resources::ssm_params::get_param_value;
 use order_stream::order_update::UserDataStream;
 
-#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
+use tracing::{error, info, Level};
+use tracing_subscriber;
+
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
-    let bookticker_partition: usize = 4;
+    let bookticker_partition: usize = 36;
     let ssm_client = get_ssm_client().await?;
     let binance_api_key = get_param_value(&ssm_client, "binance-api-key".to_string()).await?;
     let binance_secret_key = get_param_value(&ssm_client, "binance-secret-key".to_string()).await?;
@@ -27,12 +28,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listen_key: String = binance_future_client.get_listen_key().await?;
     let coins_name = binance_future_client.get_available_coins_name().await;
     let bookticker_stream = BookTickerStream::new();
-    // let urls: Vec<String> = vec![
-    //     "wss://fstream.binance.com/stream?streams=btcusdt@bookTicker/ethusdt@bookTicker"
-    //         .to_string(),
-    //     "wss://fstream.binance.com/stream?streams=zenusdt@bookTicker/bchusdt@bookTicker"
-    //         .to_string(),
-    // ];
     let bookticker_task = {
         let bookticker_stream_clone = bookticker_stream.clone();
         tokio::spawn(async move {
@@ -40,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .listen_all_coins_bookticker(coins_name, bookticker_partition)
                 .await
             {
-                eprintln!("An error occurred: {}", e);
+                error!("An error occurred: {}", e);
             }
         })
     };
@@ -49,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let bookticker_stream_clone = bookticker_stream.clone();
         tokio::spawn(async move {
             loop {
-                bookticker_stream_clone.show_bookticker().await;
+                bookticker_stream_clone.show_btc_only().await;
             }
         })
     };
