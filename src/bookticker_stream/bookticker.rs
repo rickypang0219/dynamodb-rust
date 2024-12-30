@@ -163,6 +163,23 @@ impl BookTickerStream {
             }
         }
     }
+
+    pub async fn show_btc_only(&self) {
+        loop {
+            time::sleep(time::Duration::new(300, 0)).await;
+            let book_ticker = self.book_ticker.lock().unwrap();
+
+            book_ticker
+                .iter()
+                .filter(|&(symbol, _)| symbol == &"BTCUSDT")
+                .for_each(|(_, prices)| {
+                    info!(
+                        "Special notice for BTCUSDT: Bid: {}, Ask: {}",
+                        prices.bid, prices.ask
+                    );
+                });
+        }
+    }
 }
 
 fn create_websocket_url(coin_names: &[String]) -> String {
